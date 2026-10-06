@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Арабский: Карточки слов</title>
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    :root {
+      --brand-50: #ecfdf5;
+      --brand-100: #d1fae5;
+      --brand-500: #10b981;
+      --brand-600: #059669;
+      --brand-700: #047857;
+      --brand-800: #065f46;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-400: #94a3b8;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --rose-50: #fff1f2;
+      --rose-100: #ffe4e6;
+      --rose-500: #f43f5e;
+      --rose-600: #e11d48;
+      --amber-50: #fffbeb;
+      --amber-100: #fef3c7;
+      --amber-500: #f59e0b;
+      --amber-600: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--tg-theme-bg-color, var(--slate-50));
+      color: var(--tg-theme-text-color, var(--slate-800));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    .arabic {
+      font-family: "Geeza Pro", "Damascus", "Amiri", "Traditional Arabic", serif;
+      direction: rtl;
+    }
+
+    header {
+      background: var(--tg-theme-secondary-bg-color, rgba(255, 255, 255, 0.95));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--slate-200);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .header-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tg-theme-text-color, var(--slate-900));
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--slate-500);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      color: var(--slate-700);
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .btn-secondary:active {
+      background: var(--slate-100);
+    }
+
+    .btn-primary {
+      background: var(--tg-theme-button-color, var(--brand-600));
+      color: var(--tg-theme-button-text-color, #ffffff);
+      padding: 7px 11px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(5, 150, 105, 0.2);
+    }
+
+    .btn-primary:active {
+      opacity: 0.9;
+    }
+
+    main {
+      flex: 1;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabs-wrapper {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .tabs-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-btn {
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      background: #ffffff;
+      color: var(--slate-600);
+      border: 1px solid var(--slate-200);
+    }
+
+    .cat-btn.active {
+      background: var(--slate-900);
+      color: #ffffff;
+      border-color: var(--slate-900);
+    }
+
+    .cat-btn.repeat-tab {
+      color: var(--amber-600);
+      border-color: var(--amber-100);
+      background: #fff;
+    }
+    .cat-btn.repeat-tab.active {
+      background: var(--amber-500);
+      color: #fff;
+      border-color: var(--amber-500);
+    }
+
+    .stats-card {
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .badge-learned {
+      color: var(--brand-700);
+      background: var(--brand-50);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .badge-repeat {
+      color: var(--amber-600);
+      background: var(--amber-50);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    .progress-bar-bg {
+      background: var(--slate-100);
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .progress-fill-learned {
+      background: var(--brand-500);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-fill-repeat {
+      background: var(--amber-500);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .card-scene {
+      perspective: 1000px;
+      width: 100%;
+      min-height: 320px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      width: 100%;
+      min-height: 320px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.45s cubic-bezier(0.2, 0.85, 0.32, 1.2);
+      cursor: pointer;
+    }
+
+    .card.is-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 22px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    }
+
+    .card-front {
+      background: #ffffff;
+      border: 2px solid var(--slate-200);
+    }
+
+    .card-back {
+      background: linear-gradient(180deg, #ffffff 0%, var(--brand-50) 100%);
+      border: 2px solid rgba(16, 185, 129, 0.4);
+      transform: rotateY(180deg);
+    }
+
+    .face-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .category-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: var(--slate-100);
+      color: var(--slate-600);
+      max-width: 220px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-back .category-badge {
+      background: var(--brand-100);
+      color: var(--brand-800);
+    }
+
+    .btn-audio {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--brand-50);
+      color: var(--brand-700);
+      border: none;
+    }
+    .btn-audio:active {
+      transform: scale(0.92);
+      background: var(--brand-100);
+    }
+
+    .face-center {
+      text-align: center;
+      margin: auto 0;
+      padding: 10px 0;
+    }
+
+    .arabic-word {
+      font-size: 38px;
+      line-height: 1.4;
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .russian-word {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--slate-900);
+      line-height: 1.3;
+    }
+
+    .grammar-box {
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: inline-block;
+      max-width: 100%;
+    }
+
+    .grammar-text {
+      font-size: 18px;
+      color: var(--brand-800);
+      font-weight: 700;
+    }
+
+    .notes-text {
+      font-size: 12px;
+      color: var(--slate-500);
+      margin-top: 2px;
+    }
+
+    .face-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--slate-400);
+      border-top: 1px solid var(--slate-100);
+      padding-top: 10px;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .btn-review {
+      background: var(--rose-50);
+      color: var(--rose-600);
+      border: 1px solid var(--rose-100);
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .btn-review:active {
+      background: var(--rose-100);
+      transform: scale(0.98);
+    }
+
+    .btn-mastered {
+      background: var(--brand-600);
+      color: #ffffff;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 3px 8px rgba(5, 150, 105, 0.25);
+    }
+    .btn-mastered:active {
+      background: var(--brand-700);
+      transform: scale(0.98);
+    }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .nav-bar button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .btn-flip-main {
+      background: var(--slate-900);
+      color: #ffffff;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--slate-700);
+      margin-bottom: 4px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--slate-300);
+      font-size: 14px;
+      outline: none;
+      background: #ffffff;
+      font-family: inherit;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 140px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--brand-500);
+      box-shadow: 0 0 0 2px var(--brand-100);
+    }
+
+    .hint-box {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 11px;
+      color: var(--slate-600);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .hint-code {
+      font-family: monospace;
+      color: var(--brand-700);
+      background: #ffffff;
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid var(--slate-200);
+      display: block;
+      margin-top: 4px;
+      white-space: pre-wrap;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--slate-900);
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 200;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    svg {
+      display: inline-block;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1 class="brand-title">Арабский: Карточки</h1>
+        <p class="brand-sub">Интерактивный тренажер</p>
+      </div>
+
+      <div class="header-actions">
+        <button id="modeBtn" class="btn-secondary" title="Сменить направление">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10h14l-4-4m4 8H3l4 4"/></svg>
+          <span id="modeText">Араб → Рус</span>
+        </button>
+
+        <button id="openBulkBtn" class="btn-secondary" title="Импорт списком">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Импорт</span>
+        </button>
+
+        <button id="openAddBtn" class="btn-primary" title="Добавить одно слово">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <span>+</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs-wrapper" id="categoriesTabs"></div>
+
+    <div class="stats-card">
+      <div class="stats-header">
+        <div>
+          <span>Карточка <b id="curIdx">1</b> из <span id="totalCards">0</span></span>
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <span class="badge-learned">Выучено: <b id="statMastered">0</b></span>
+          <span class="badge-repeat">Повторить: <b id="statReview">0</b></span>
+        </div>
+      </div>
+      <div class="progress-bar-bg">
+        <div id="progMastered" class="progress-fill-learned"></div>
+        <div id="progRepeat" class="progress-fill-repeat"></div>
+      </div>
+    </div>
+
+    <div class="card-scene">
+      <div id="flashcard" class="card">
+        
+        <!-- Передняя сторона -->
+        <div class="card-face card-front">
+          <div class="face-top">
+            <span id="frontBadge" class="category-badge">Категория</span>
+            <button id="frontAudio" class="btn-audio" title="Слушать">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+
+          <div class="face-center">
+            <div id="frontMain" class="arabic arabic-word">غُرْفَةُ الْجُلُوسِ</div>
+          </div>
+
+          <div class="face-bottom">
+            <span id="frontStatus">Новое слово</span>
+            <span>Нажмите для переворота</span>
+          </div>
+        </div>
+
+        <!-- Задняя сторона -->
+        <div class="card-face card-back">
+          <div class="face-top">
+            <span id="backBadge" class="category-badge">Перевод</span>
+            <button id="backAudio" class="btn-audio" title="Слушать">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          </div>
+
+          <div class="face-center">
+            <div id="backMain" class="russian-word">гостиная; комната отдыха</div>
+            
+            <div id="backMeta" class="grammar-box">
+              <div id="backGrammar" class="arabic grammar-text"></div>
+              <div id="backNotes" class="notes-text"></div>
+            </div>
+          </div>
+
+          <div class="face-bottom">
+            <span style="color: var(--brand-700); font-weight: 600;">Оцените свой ответ</span>
+            <span>Перевернуть обратно ↺</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Кнопки ответа -->
+    <div class="controls-grid">
+      <button id="btnReview" class="btn-review">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+        <span>Повторить</span>
+      </button>
+
+      <button id="btnMastered" class="btn-mastered">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>Знаю</span>
+      </button>
+    </div>
+
+    <!-- Навигация -->
+    <div class="nav-bar">
+      <button id="btnPrev" class="btn-secondary">← Назад</button>
+      <button id="btnFlip" class="btn-flip-main">Перевернуть</button>
+      <button id="btnNext" class="btn-secondary">Вперед →</button>
+      <button id="btnShuffle" class="btn-secondary" title="Перемешать">🔀</button>
+    </div>
+  </main>
+
+  <!-- Модальное окно массового импорта -->
+  <div id="bulkModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span>Импорт списка слов</span>
+        <button id="closeBulkBtn" style="background: none; font-size: 20px; color: var(--slate-400);">✕</button>
+      </div>
+
+      <div class="hint-box">
+        Формат строки:
+        <span class="hint-code">Арабское | Перевод | Категория | Форма | Заметка</span>
+      </div>
+
+      <form id="bulkForm">
+        <div class="form-group">
+          <label class="form-label">Категория по умолчанию</label>
+          <input type="text" id="bulkDefaultCat" class="form-input" placeholder="Например: Новый урок">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Список слов *</label>
+          <textarea id="bulkText" class="form-textarea" required placeholder="مَائِدَةٌ | обеденный стол | Мебель | мн. مَوَائِدُ
+سَرِيرٌ | кровать | Мебель | мн. أَسِرَّةٌ"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
+          <button type="button" id="cancelBulkBtn" class="btn-secondary">Отмена</button>
+          <button type="submit" class="btn-primary">Загрузить слова</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Модальное окно добавления одного слова -->
+  <div id="addModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-title">
+        <span>Новая карточка</span>
+        <button id="closeAddBtn" style="background: none; font-size: 20px; color: var(--slate-400);">✕</button>
+      </div>
+
+      <form id="addForm">
+        <div class="form-group">
+          <label class="form-label">Арабское слово с огласовками *</label>
+          <input type="text" id="inArabic" class="form-input arabic" required placeholder="مثال: مَائِدَةٌ" style="font-size: 18px; text-align: right;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Перевод *</label>
+          <input type="text" id="inRussian" class="form-input" required placeholder="Например: обеденный стол">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Категория</label>
+          <select id="inCat" class="form-select"></select>
+        </div>
+
+        <div id="customCatBox" class="form-group hidden">
+          <label class="form-label" style="color: var(--brand-700);">Название новой категории *</label>
+          <input type="text" id="inCustomCat" class="form-input" placeholder="Например: Посуда, Семья...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Форма / Множественное число</label>
+          <input type="text" id="inGrammar" class="form-input arabic" placeholder="مثال: مَوَائِدُ" style="text-align: right;">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Примечание / Предлог</label>
+          <input type="text" id="inNotes" class="form-input" placeholder="предлог مِنْ или пояснение">
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
+          <button type="button" id="cancelAddBtn" class="btn-secondary">Отмена</button>
+          <button type="submit" class="btn-primary">Сохранить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Уведомление</div>
+
+  <script>
+    const rawVocabulary = [
+      { id: "r1", arabic: "غُرْفَةُ الْجُلُوسِ", russian: "гостиная; комната отдыха", category: "Помещения", grammar: "", notes: "Букв.: комната сидения", status: "unseen" },
+      { id: "r2", arabic: "صَالُون ، صَالَةٌ", russian: "салон, зал, комната отдыха", category: "Помещения", grammar: "", notes: "Зал для гостей", status: "unseen" },
+      { id: "r3", arabic: "غُرْفَةُ النَّوْمِ", russian: "спальная комната, спальня", category: "Помещения", grammar: "", notes: "نَوْم = сон", status: "unseen" },
+      { id: "r4", arabic: "مَكْتَبٌ", russian: "кабинет; письменный стол", category: "Помещения", grammar: "мн. مَكَاتِبُ", notes: "Имя места от глагола كَتَبَ", status: "unseen" },
+      { id: "r5", arabic: "مَطْبَخٌ", russian: "кухня", category: "Помещения", grammar: "мн. مَطَابِخُ", notes: "От глагола طَبَخَ (готовить)", status: "unseen" },
+      { id: "r6", arabic: "مَغْسَلَةٌ", russian: "мойка, раковина", category: "Помещения", grammar: "", notes: "От глагола غَسَلَ (мыть)", status: "unseen" },
+      { id: "r7", arabic: "حَمَّامٌ", russian: "ванная комната; ванна", category: "Помещения", grammar: "мн. حَمَّامَاتٌ", notes: "", status: "unseen" },
+      { id: "r8", arabic: "شُرْفَةٌ", russian: "балкон; веранда", category: "Помещения", grammar: "син: بَلَكُونٌ", notes: "", status: "unseen" },
+      { id: "r9", arabic: "جِدْرٌ", russian: "стена", category: "Помещения", grammar: "мн. جُدْرَانٌ", notes: "", status: "unseen" },
+      { id: "r10", arabic: "سَقْفٌ", russian: "крыша; потолок", category: "Помещения", grammar: "мн. سُقُوفٌ", notes: "", status: "unseen" },
+      { id: "r11", arabic: "قِرْمِيدٌ", russian: "черепица", category: "Помещения", grammar: "", notes: "Красная черепица", status: "unseen" },
+      { id: "r12", arabic: "جُنَيْنَةٌ", russian: "сад", category: "Помещения", grammar: "мн. جَنَائِنُ", notes: "", status: "unseen" },
+      { id: "r13", arabic: "رُكْنٌ", russian: "угол (в помещении)", category: "Помещения", grammar: "мн. أَرْكَانٌ", notes: "", status: "unseen" },
+      { id: "r14", arabic: "زَاهٍ (زَاهِيَةٌ)", russian: "цветущий; яркий (о красках)", category: "Помещения", grammar: "ж. р. زَاهِيَةٌ", notes: "", status: "unseen" },
+      { id: "r15", arabic: "يَسَارٌ", russian: "левая сторона; левый", category: "Помещения", grammar: "", notes: "Противоположность: يَمِينٌ", status: "unseen" },
+      { id: "r16", arabic: "يَمِينٌ", russian: "правая сторона; правый", category: "Помещения", grammar: "", notes: "Противоположность: يَسَارٌ", status: "unseen" },
+      { id: "r17", arabic: "عَصْرِيٌّ", russian: "современный", category: "Помещения", grammar: "", notes: "От слова عَصْر (эпоха)", status: "unseen" },
+      { id: "r18", arabic: "كَهْرَبَائِيٌّ", russian: "электрический", category: "Помещения", grammar: "", notes: "", status: "unseen" },
+
+      { id: "f1", arabic: "أَثَاثٌ", russian: "мебель", category: "Мебель", grammar: "мн. أَثَاثَاتٌ", notes: "", status: "unseen" },
+      { id: "f2", arabic: "صِوَانٌ", russian: "шкаф", category: "Мебель", grammar: "мн. أَصْوِنَةٌ", notes: "", status: "unseen" },
+      { id: "f3", arabic: "صِوَانُ الثِّيَابِ", russian: "платяной шкаф (гардероб)", category: "Мебель", grammar: "", notes: "", status: "unseen" },
+      { id: "f4", arabic: "صِوَانُ الْكُتُبِ", russian: "книжный шкаф", category: "Мебель", grammar: "", notes: "", status: "unseen" },
+      { id: "f5", arabic: "مَائِدَةٌ", russian: "обеденный стол", category: "Мебель", grammar: "мн. مَوَائِدُ", notes: "Стол с едой", status: "unseen" },
+      { id: "f6", arabic: "سُفْرَةٌ", russian: "кухонный стол", category: "Мебель", grammar: "мн. سُفَرٌ", notes: "", status: "unseen" },
+      { id: "f7", arabic: "تَرَابِيزَةٌ", russian: "стол; столик", category: "Мебель", grammar: "мн. -ات", notes: "Разговорное", status: "unseen" },
+      { id: "f8", arabic: "مِنْضَدَةٌ", russian: "столик; тумбочка", category: "Мебель", grammar: "мн. مَنَاضِدُ", notes: "", status: "unseen" },
+      { id: "f9", arabic: "أَرِيكَةٌ", russian: "диван; софа", category: "Мебель", grammar: "мн. أَرَائِكُ", notes: "", status: "unseen" },
+      { id: "f10", arabic: "كَنَبَةٌ", russian: "диван; софа", category: "Мебель", grammar: "мн. كَنَبَاتٌ", notes: "", status: "unseen" },
+      { id: "f11", arabic: "سَرِيرٌ", russian: "кровать", category: "Мебель", grammar: "мн. أَسِرَّةٌ", notes: "", status: "unseen" },
+      { id: "f12", arabic: "مِرْآةٌ", russian: "зеркало", category: "Мебель", grammar: "мн. مَرَايَا", notes: "", status: "unseen" },
+      { id: "f13", arabic: "مِصْبَاحٌ", russian: "лампа; светильник", category: "Мебель", grammar: "мн. مَصَابِيحُ", notes: "", status: "unseen" },
+      { id: "f14", arabic: "زَهْرِيَّةٌ", russian: "цветочная ваза", category: "Мебель", grammar: "мн. زَهْرِيَّاتٌ", notes: "От слова زَهْرَة", status: "unseen" },
+
+      { id: "v1", arabic: "وَقَعَ – يَقَعُ – وُقُوعٌ", russian: "падать; быть расположенным", category: "Глаголы", grammar: "I порода (а)", notes: "Подобный слабый глагол", status: "unseen" },
+      { id: "v2", arabic: "وَصَفَ – يَصِفُ – وَصْفٌ", russian: "описывать", category: "Глаголы", grammar: "I порода (и)", notes: "", status: "unseen" },
+      { id: "v3", arabic: "وَضَعَ – يَضَعُ – وَضْعٌ", russian: "класть; ставить", category: "Глаголы", grammar: "I порода (а)", notes: "", status: "unseen" },
+      { id: "v4", arabic: "شَرَقَ – يَشْرُقُ – شُرُوقٌ", russian: "восходить (о солнце)", category: "Глаголы", grammar: "I порода (у)", notes: "", status: "unseen" },
+      { id: "v5", arabic: "قَعَدَ – يَقْعُدُ – قُعُودٌ", russian: "садиться, сидеть", category: "Глаголы", grammar: "I порода (у)", notes: "Син: جَلَسَ", status: "unseen" },
+      { id: "v6", arabic: "شَغَلَ – يَشْغَلُ – شُغْلٌ", russian: "занимать (зд. помещение)", category: "Глаголы", grammar: "I порода (а)", notes: "", status: "unseen" },
+      { id: "v7", arabic: "تَكَوَّنَ – يَتَكَوَّنُ – تَكَوُّنٌ", russian: "состоять (из مِنْ)", category: "Глаголы", grammar: "V порода + مِنْ", notes: "", status: "unseen" },
+      { id: "v8", arabic: "رَتَّبَ – يُرَتِّبُ – تَرْتِيبٌ", russian: "приводить в порядок", category: "Глаголы", grammar: "II порода", notes: "", status: "unseen" },
+      { id: "v9", arabic: "نَظَّفَ – يُنَظِّفُ – تَنْظِيفٌ", russian: "чистить", category: "Глаголы", grammar: "II порода", notes: "", status: "unseen" },
+      { id: "v10", arabic: "نَظَّمَ – يُنَظِّمُ – تَنْظِيمٌ", russian: "организовывать", category: "Глаголы", grammar: "II порода", notes: "", status: "unseen" },
+      { id: "v11", arabic: "أَطَلَّ – يُطِلُّ – إِطْلَالٌ", russian: "выходить (на что-л. عَلَى)", category: "Глаголы", grammar: "IV порода + عَلَى", notes: "Окна выходят на сад", status: "unseen" },
+      { id: "v12", arabic: "قَامَ – يَقُومُ – قِيَامٌ", russian: "1) вставать; 2) делать (بِـ)", category: "Глаголы", grammar: "I порода (у) + بِـ", notes: "Пустой глагол", status: "unseen" },
+      { id: "v13", arabic: "رَجَعَ – يَرْجِعُ – رُجُوعٌ", russian: "возвращаться", category: "Глаголы", grammar: "I порода (и)", notes: "", status: "unseen" },
+
+      { id: "p1", arabic: "جُدْرَانُهُ بَيْضَاءُ", russian: "его стены белые", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p2", arabic: "سَقْفُهُ مِنَ الْقِرْمِيدِ الأَحْمَرِ", russian: "его крыша из красной черепицы", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p3", arabic: "تَشْرُقُ الشَّمْسُ", russian: "солнце всходит", category: "Фразы", grammar: "", notes: "Шамс женского рода", status: "unseen" },
+      { id: "p4", arabic: "تُشْرِقُ عَلَى الْمَنْزِلِ الشَّمْسُ", russian: "солнце освещает дом", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p5", arabic: "الدَّوْرُ الأَرْضِيُّ", russian: "нижний (первый) этаж", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p6", arabic: "فِي الرُّكْنِ الْيَسَارِ", russian: "в левом углу", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p7", arabic: "فِي الرُّكْنِ الْيَمِينِ", russian: "в правом углу", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p8", arabic: "مَوْقِدُ الْغَازِ", russian: "газовая плита", category: "Фразы", grammar: "", notes: "Идафа", status: "unseen" },
+      { id: "p9", arabic: "أَكْبَرُ الْغُرَفِ", russian: "самая большая комната", category: "Фразы", grammar: "", notes: "", status: "unseen" },
+      { id: "p10", arabic: "الْبُحُوثُ الْعِلْمِيَّةُ", russian: "научные исследования", category: "Фразы", grammar: "", notes: "", status: "unseen" }
+    ];
+
+    const DB_KEY = 'arabic_tma_v1_cards';
+    const MODE_KEY = 'arabic_tma_v1_mode';
+
+    let cards = [];
+    let currentCategory = 'all';
+    let filtered = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let mode = 'ar-ru';
+    let audioFallbackPlayer = null;
+
+    // Telegram Haptic Feedback Helper
+    function triggerHaptic(type = 'light') {
+      try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+          if (type === 'success' || type === 'warning' || type === 'error') {
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred(type);
+          } else {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function init() {
+      // Инициализация Telegram WebApp
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+      }
+
+      try {
+        const saved = localStorage.getItem(DB_KEY);
+        if (saved) {
+          cards = JSON.parse(saved);
+        } else {
+          cards = [...rawVocabulary];
+          save();
+        }
+        mode = localStorage.getItem(MODE_KEY) || 'ar-ru';
+      } catch (e) {
+        cards = [...rawVocabulary];
+      }
+      updateModeUI();
+      renderTabs();
+      applyFilter();
+      render();
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(DB_KEY, JSON.stringify(cards));
+      } catch (e) {}
+    }
+
+    function getCategoriesList() {
+      const cats = new Set();
+      cards.forEach(c => {
+        if (c.category && c.category.trim()) {
+          cats.add(c.category.trim());
+        }
+      });
+      return Array.from(cats);
+    }
+
+    function renderTabs() {
+      const container = document.getElementById('categoriesTabs');
+      const cats = getCategoriesList();
+
+      let html = `<button class="cat-btn ${currentCategory === 'all' ? 'active' : ''}" data-cat="all">Все (<span id="countAll">${cards.length}</span>)</button>`;
+
+      cats.forEach(cat => {
+        const count = cards.filter(c => c.category === cat).length;
+        const isActive = currentCategory === cat ? 'active' : '';
+        html += `<button class="cat-btn ${isActive}" data-cat="${escapeHtml(cat)}">${escapeHtml(cat)} (${count})</button>`;
+      });
+
+      const repeatCount = cards.filter(c => c.status === 'review').length;
+      html += `<button class="cat-btn repeat-tab ${currentCategory === 'repeat' ? 'active' : ''}" data-cat="repeat">Повтор (<span id="countRepeat">${repeatCount}</span>)</button>`;
+
+      container.innerHTML = html;
+
+      container.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          triggerHaptic('selection_changed');
+          container.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentCategory = btn.getAttribute('data-cat');
+          currentIndex = 0;
+          render();
+        });
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function applyFilter() {
+      if (currentCategory === 'all') {
+        filtered = [...cards];
+      } else if (currentCategory === 'repeat') {
+        filtered = cards.filter(c => c.status === 'review');
+      } else {
+        filtered = cards.filter(c => c.category === currentCategory);
+      }
+      if (currentIndex >= filtered.length) currentIndex = 0;
+    }
+
+    function render() {
+      const cardEl = document.getElementById('flashcard');
+      if (isFlipped) {
+        cardEl.classList.remove('is-flipped');
+        isFlipped = false;
+      }
+
+      applyFilter();
+      updateStats();
+
+      const fMain = document.getElementById('frontMain');
+      const bMain = document.getElementById('backMain');
+      const fBadge = document.getElementById('frontBadge');
+      const bBadge = document.getElementById('backBadge');
+      const fStatus = document.getElementById('frontStatus');
+      const bGrammar = document.getElementById('backGrammar');
+      const bNotes = document.getElementById('backNotes');
+      const bMeta = document.getElementById('backMeta');
+
+      if (filtered.length === 0) {
+        fMain.textContent = "Пусто";
+        fMain.className = "russian-word";
+        fBadge.textContent = "Нет слов";
+        fStatus.textContent = "В категории нет слов";
+        bMain.textContent = "Выберите другую вкладку";
+        bMeta.classList.add('hidden');
+        return;
+      }
+
+      const item = filtered[currentIndex];
+      const catTitle = item.category || 'Лексика';
+      fBadge.textContent = catTitle;
+      bBadge.textContent = catTitle;
+
+      fStatus.textContent = item.status === 'mastered' ? '✅ Выучено' : item.status === 'review' ? '⚠️ На повторении' : '⚪ Новое слово';
+
+      if (mode === 'ar-ru') {
+        fMain.textContent = item.arabic;
+        fMain.className = "arabic arabic-word";
+        bMain.textContent = item.russian;
+        bMain.className = "russian-word";
+      } else {
+        fMain.textContent = item.russian;
+        fMain.className = "russian-word";
+        bMain.textContent = item.arabic;
+        bMain.className = "arabic arabic-word";
+      }
+
+      if (item.grammar || item.notes) {
+        bGrammar.textContent = item.grammar || '';
+        bNotes.textContent = item.notes || '';
+        bMeta.classList.remove('hidden');
+      } else {
+        bMeta.classList.add('hidden');
+      }
+    }
+
+    function updateStats() {
+      const total = cards.length;
+      const mastered = cards.filter(c => c.status === 'mastered').length;
+      const review = cards.filter(c => c.status === 'review').length;
+
+      document.getElementById('statMastered').textContent = mastered;
+      document.getElementById('statReview').textContent = review;
+      document.getElementById('totalCards').textContent = filtered.length;
+      document.getElementById('curIdx').textContent = filtered.length > 0 ? currentIndex + 1 : 0;
+
+      const pM = total > 0 ? (mastered / total) * 100 : 0;
+      const pR = total > 0 ? (review / total) * 100 : 0;
+      document.getElementById('progMastered').style.width = pM + '%';
+      document.getElementById('progRepeat').style.width = pR + '%';
+    }
+
+    function toggleFlip() {
+      isFlipped = !isFlipped;
+      triggerHaptic('light');
+      document.getElementById('flashcard').classList.toggle('is-flipped', isFlipped);
+    }
+
+    function speakAudio() {
+      if (filtered.length === 0) return;
+      const item = filtered[currentIndex];
+      const text = item.arabic.replace(/[\(\)\[\]\-–—،,]/g, ' ').trim();
+      if (!text) return;
+
+      triggerHaptic('light');
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const voices = window.speechSynthesis.getVoices();
+        const arVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
+        if (arVoice) {
+          const u = new SpeechSynthesisUtterance(text);
+          u.voice = arVoice;
+          u.lang = 'ar-SA';
+          u.rate = 0.85;
+          window.speechSynthesis.speak(u);
+          showToast('Озвучивание...');
+          return;
+        }
+      }
+
+      if (audioFallbackPlayer) audioFallbackPlayer.pause();
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ar&q=${encodeURIComponent(text)}`;
+      audioFallbackPlayer = new Audio(url);
+      audioFallbackPlayer.play().then(() => showToast('Озвучивание...')).catch(() => showToast('Нажмите на экран для звука'));
+    }
+
+    function mark(status) {
+      if (filtered.length === 0) return;
+      const item = filtered[currentIndex];
+      const real = cards.find(c => c.id === item.id);
+      if (real) {
+        real.status = status;
+        save();
+      }
+      triggerHaptic(status === 'mastered' ? 'success' : 'medium');
+      showToast(status === 'mastered' ? 'Выучено! 👏' : 'В повторение 📌');
+      renderTabs();
+      nextCard();
+    }
+
+    function nextCard() {
+      if (filtered.length <= 1) return render();
+      currentIndex = (currentIndex + 1) % filtered.length;
+      render();
+    }
+
+    function prevCard() {
+      if (filtered.length <= 1) return render();
+      currentIndex = (currentIndex - 1 + filtered.length) % filtered.length;
+      render();
+    }
+
+    function updateModeUI() {
+      document.getElementById('modeText').textContent = mode === 'ar-ru' ? 'Араб → Рус' : 'Рус → Араб';
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window.tId);
+      window.tId = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function populateModalCategorySelect() {
+      const sel = document.getElementById('inCat');
+      const cats = getCategoriesList();
+      let html = '';
+      cats.forEach(c => {
+        html += `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`;
+      });
+      html += `<option value="__custom__">➕ Создать новую категорию...</option>`;
+      sel.innerHTML = html;
+      document.getElementById('customCatBox').classList.add('hidden');
+      document.getElementById('inCustomCat').value = '';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+
+      document.getElementById('flashcard').addEventListener('click', (e) => {
+        if (e.target.closest('.btn-audio')) return;
+        toggleFlip();
+      });
+
+      document.getElementById('btnFlip').addEventListener('click', toggleFlip);
+      document.getElementById('frontAudio').addEventListener('click', (e) => { e.stopPropagation(); speakAudio(); });
+      document.getElementById('backAudio').addEventListener('click', (e) => { e.stopPropagation(); speakAudio(); });
+
+      document.getElementById('btnReview').addEventListener('click', () => mark('review'));
+      document.getElementById('btnMastered').addEventListener('click', () => mark('mastered'));
+      document.getElementById('btnNext').addEventListener('click', () => { triggerHaptic('light'); nextCard(); });
+      document.getElementById('btnPrev').addEventListener('click', () => { triggerHaptic('light'); prevCard(); });
+
+      document.getElementById('btnShuffle').addEventListener('click', () => {
+        triggerHaptic('medium');
+        for (let i = cards.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        currentIndex = 0;
+        save();
+        render();
+        showToast('Колода перемешана 🔀');
+      });
+
+      document.getElementById('modeBtn').addEventListener('click', () => {
+        triggerHaptic('light');
+        mode = mode === 'ar-ru' ? 'ru-ar' : 'ar-ru';
+        localStorage.setItem(MODE_KEY, mode);
+        updateModeUI();
+        render();
+      });
+
+      // Одиночное добавление
+      const addModal = document.getElementById('addModal');
+      const customCatBox = document.getElementById('customCatBox');
+      const inCatSelect = document.getElementById('inCat');
+
+      document.getElementById('openAddBtn').addEventListener('click', () => {
+        populateModalCategorySelect();
+        addModal.classList.remove('hidden');
+      });
+
+      const closeAddModal = () => {
+        addModal.classList.add('hidden');
+        document.getElementById('addForm').reset();
+      };
+      document.getElementById('closeAddBtn').addEventListener('click', closeAddModal);
+      document.getElementById('cancelAddBtn').addEventListener('click', closeAddModal);
+
+      inCatSelect.addEventListener('change', () => {
+        if (inCatSelect.value === '__custom__') {
+          customCatBox.classList.remove('hidden');
+          document.getElementById('inCustomCat').focus();
+        } else {
+          customCatBox.classList.add('hidden');
+        }
+      });
+
+      document.getElementById('addForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const ar = document.getElementById('inArabic').value.trim();
+        const ru = document.getElementById('inRussian').value.trim();
+        if (!ar || !ru) return;
+
+        let selectedCategory = inCatSelect.value;
+        if (selectedCategory === '__custom__') {
+          const customName = document.getElementById('inCustomCat').value.trim();
+          if (!customName) {
+            showToast('Введите название новой категории');
+            return;
+          }
+          selectedCategory = customName;
+        }
+
+        cards.unshift({
+          id: 'custom_' + Date.now(),
+          arabic: ar,
+          russian: ru,
+          category: selectedCategory,
+          grammar: document.getElementById('inGrammar').value.trim(),
+          notes: document.getElementById('inNotes').value.trim(),
+          status: 'unseen'
+        });
+
+        save();
+        closeAddModal();
+        currentCategory = selectedCategory;
+        currentIndex = 0;
+        renderTabs();
+        render();
+        triggerHaptic('success');
+        showToast(`Карточка сохранена в «${selectedCategory}»!`);
+      });
+
+      // Массовый импорт списком
+      const bulkModal = document.getElementById('bulkModal');
+      document.getElementById('openBulkBtn').addEventListener('click', () => {
+        bulkModal.classList.remove('hidden');
+        document.getElementById('bulkText').focus();
+      });
+
+      const closeBulkModal = () => {
+        bulkModal.classList.add('hidden');
+        document.getElementById('bulkForm').reset();
+      };
+      document.getElementById('closeBulkBtn').addEventListener('click', closeBulkModal);
+      document.getElementById('cancelBulkBtn').addEventListener('click', closeBulkModal);
+
+      document.getElementById('bulkForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = document.getElementById('bulkText').value.trim();
+        const fallbackCat = document.getElementById('bulkDefaultCat').value.trim() || 'Общие';
+        if (!text) return;
+
+        const lines = text.split('\n');
+        let addedCount = 0;
+        let lastCategory = fallbackCat;
+
+        lines.forEach((line, index) => {
+          const cleanLine = line.trim();
+          if (!cleanLine) return;
+
+          let sep = '|';
+          if (!cleanLine.includes('|')) {
+            if (cleanLine.includes('\t')) sep = '\t';
+            else if (cleanLine.includes(';')) sep = ';';
+            else if (cleanLine.includes(' — ')) sep = ' — ';
+            else if (cleanLine.includes(' - ')) sep = ' - ';
+          }
+
+          const parts = cleanLine.split(sep).map(p => p.trim());
+          const ar = parts[0] || '';
+          const ru = parts[1] || '';
+          const cat = parts[2] || fallbackCat;
+          const grammar = parts[3] || '';
+          const notes = parts[4] || '';
+
+          if (ar && ru) {
+            cards.unshift({
+              id: 'bulk_' + Date.now() + '_' + index,
+              arabic: ar,
+              russian: ru,
+              category: cat,
+              grammar: grammar,
+              notes: notes,
+              status: 'unseen'
+            });
+            addedCount++;
+            lastCategory = cat;
+          }
+        });
+
+        if (addedCount > 0) {
+          save();
+          closeBulkModal();
+          currentCategory = lastCategory;
+          currentIndex = 0;
+          renderTabs();
+          render();
+          triggerHaptic('success');
+          showToast(`Добавлено ${addedCount} слов! 🎉`);
+        } else {
+          showToast('Не удалось распознать формат строк');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
